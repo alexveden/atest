@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+#
+#  Minimalist C Unit Testing Framework
+#      Alex Vedeneev (c) 2023 MIT License
+#
+#
+"""
+It's a helper module which compiles all ATEST_F functions of the .c file into its main(),
+you can  do the same manually as well.
+"""
+import argparse
+import os
+import sys
+import re
+import io
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('src_file')
+    parser.add_argument('--out', action="store_true", default=False)
+
+    args = parser.parse_args()
+    src_file = args.src_file
+
+    if not os.path.exists(src_file):
+        print(f'{src_file} not exists')
+        sys.exit(1)
+
+    buf = io.StringIO()
+
+    fh = open(src_file, 'r')
+    lines = fh.readlines()
+
+    all_tests = []
+    test_calls = set()
+
+    re_test_definition = re.compile(r"^ATEST_F\((?P<test_name>\w+)\)", re.MULTILINE)
+    re_test_setup_f_definition = re.compile(r"^ATEST_SETUP_F\(\w*\)", re.MULTILINE)
+    re_test_run_call = re.compile(r"^\s+ATEST_RUN\((?P<test_name>\w+)\);", re.MULTILINE)
+    re_insert_here = re.compile(r"^\s+//\s*<ATEST_RUNS>.*$", re.MULTILINE)
+    has_setup = False
+    has_insert_here = False
+    has_return = False
+    insert_indent = ''
+    
+    for l in lines:
+        if re_test_definition.match(l):
+            all_tests.append(re_test_definition.match(l)['test_name'])
+        elif re_test_setup_f_definition.match(l):
+            has_setup = True
+        elif re_insert_here.match(l):
+            has_insert_here = True
+            insert_indent = l[0:l.index('/')]
+            
+            # Keep // <ATEST_RUNS>
+            buf.write(l)
+            if len(all_tests) == 0:
+                print('Not tests to be inserted, or <ATEST_RUNS> before test definitions');
+                sys.exit(1)
+
+            for t in all_tests:
+                buf.write(f"{insert_indent}ATEST_RUN({t});\n")
+       
+        tcall = re_test_run_call.match(l) 
+        if tcall or re_insert_here.match(l):
+            if tcall:
+                test_calls.add(tcall['test_name'])
+
+            if not has_insert_here:
+                print('ATEST_RUN() calls before or missing //<ATEST_RUNS>, possible manually built test')
+                sys.exit(1)
+            # Ignore all test calls, we'll include them later
+            pass
+        else:
+            buf.write(l)
+                
+    if not has_setup:
+        print("No ATEST_SETUP_F() found")
+        sys.exit(1)
+    fh.close()
+
+    if set(all_tests) == set(test_calls):
+        # No new tests added or changed, prevent touching the source code then
+        sys.exit(0)
+
+    if args.out:
+        print(buf.getvalue())
+    else:    
+        with open(src_file, 'w') as fh:
+            fh.write(buf.getvalue()) 
+
+    sys.exit(0)
+ 
+
