@@ -120,7 +120,7 @@ atlogf(const char * format_str, ...);
 ```
 
 
-# atest unit example source
+# atest `test_sample.c`
 ```c
 
 #include "atest.h"
@@ -232,7 +232,43 @@ int main(int argc, char *argv[])
 }
 
 ```
+## `test_sample.c` output
+```
+-------------------------------------
+Running Tests: test_sample.c
+-------------------------------------
 
+[ LOG] (test_sample.c:12): atest_setup()
+[FAIL] (test_sample.c:21): expected: 1 != actual: 0 (assert_with_formatting)
+[ LOG] (test_sample.c:7): atest_shutdown()
+[ LOG] (test_sample.c:12): atest_setup()
+[FAIL] (test_sample.c:28): 'b' != '(null)' (assert_eq_strings_null_expected)
+[ LOG] (test_sample.c:7): atest_shutdown()
+[ LOG] (test_sample.c:12): atest_setup()
+[FAIL] (test_sample.c:34): '(null)' != 'b' (assert_eq_strings_null_actual)
+[ LOG] (test_sample.c:7): atest_shutdown()
+[ LOG] (test_sample.c:12): atest_setup()
+[FAIL] (test_sample.c:40): 'b' != 'axb' (assert_eq_strings)
+[ LOG] (test_sample.c:7): atest_shutdown()
+[ LOG] (test_sample.c:12): atest_setup()
+[FAIL] (test_sample.c:61): 0.333333 != 0.333333 (diff: 0.0000003333 epsilon: 0.0000001192) (assert_eq_float)
+[ LOG] (test_sample.c:7): atest_shutdown()
+[ LOG] (test_sample.c:12): atest_setup()
+[FAIL] (test_sample.c:67): 9 != 8 (assert_eq_int)
+[ LOG] (test_sample.c:7): atest_shutdown()
+[ LOG] (test_sample.c:12): atest_setup()
+[PASS] assert_passed
+[ LOG] (test_sample.c:7): atest_shutdown()
+[ LOG] (test_sample.c:12): atest_setup()
+[ LOG] (test_sample.c:79): simple msg
+[ LOG] (test_sample.c:80): HI this test is gonna fail, because 1 != 0!
+[FAIL] (test_sample.c:82): 1 == 0 (assert_fails_with_some_logging)
+[ LOG] (test_sample.c:7): atest_shutdown()
+
+-------------------------------------
+Total: 8 Passed: 1 Failed: 7
+-------------------------------------
+```
 
 # Credits
 
